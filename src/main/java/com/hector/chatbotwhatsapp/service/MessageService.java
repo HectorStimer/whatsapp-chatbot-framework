@@ -2,6 +2,8 @@ package com.hector.chatbotwhatsapp.service;
 
 import com.hector.chatbotwhatsapp.dto.WebhookPayloadDTO;
 import com.hector.chatbotwhatsapp.dto.WebhookPayloadDTO.MessageDTO;
+import com.hector.chatbotwhatsapp.model.MessageLog;
+import com.hector.chatbotwhatsapp.repository.MessageLogRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,6 +19,7 @@ public class MessageService {
 
     private final AiService aiService;
     private final WhatsAppService whatsAppService;
+    private final MessageLogRepository messageLogRepository;
 
     @Value("${bot.trigger-words}")
     private List<String> triggerWords;
@@ -45,6 +48,13 @@ public class MessageService {
 
             String resposta = aiService.generateResponse(groupId, userName, texto);
             whatsAppService.sendMessage(groupId, resposta);
+
+            messageLogRepository.save(MessageLog.builder()
+                    .groupId(groupId)
+                    .userName(userName)
+                    .message(texto)
+                    .response(resposta)
+                    .build());
         }
     }
 
